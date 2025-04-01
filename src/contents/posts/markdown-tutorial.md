@@ -1,5 +1,5 @@
 ---
-title: Markdown Tutorial
+title: Write up
 published: 2025-01-20
 description: A simple example of a Markdown blog post.
 tags: [Markdown, Blogging]
