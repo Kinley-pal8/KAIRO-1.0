@@ -1,10 +1,11 @@
 import I18nKeys from "./src/locales/keys";
 import type { Configuration } from "./src/types/config";
 
+
 const YukinaConfig: Configuration = {
   title: "K P",
   subTitle: "My Personal Blog",
-  brandTitle: "Yukina",
+  brandTitle: "K P",
 
   description: "Demo Site",
 
@@ -54,12 +55,18 @@ const YukinaConfig: Configuration = {
   maxFooterTagChip: 24,
 
   banners: [
-    "https://s2.loli.net/2025/01/25/PBvHFjr5yDu6t4a.webp",
+    "/images/home/home1.jpg",
+    "/images/home/home3.jpg",
+    "/images/home/home4.jpg",
+    "https://s2.loli.net/2025/01/25/JjpLOW8VSmufzlA.webp",
+    "/images/home/home6.jpg",
+    "https://res.cloudinary.com/artis3nal/w_auto,c_scale,f_auto,q_auto,dpr_auto/blog/htb/shocker/htb-shocker_bhwb7v.jpg",
     "https://s2.loli.net/2025/01/25/6bKcwHZigzlM4mJ.webp",
     "https://s2.loli.net/2025/01/25/H9WgEK6qNTcpFiS.webp",
+    "https://s2.loli.net/2025/01/25/Pm89OveZq7NWUxF.webp",
+    "/images/home/home5.jpg",
     "https://s2.loli.net/2025/01/25/njNVtuUMzxs81RI.webp",
     "https://s2.loli.net/2025/01/25/tozsJ8QHAjFN3Mm.webp",
-    "https://s2.loli.net/2025/01/25/Pm89OveZq7NWUxF.webp",
     "https://s2.loli.net/2025/01/25/UCYKvc1ZhgPHB9m.webp",
     "https://s2.loli.net/2025/01/25/JjpLOW8VSmufzlA.webp",
   ],
