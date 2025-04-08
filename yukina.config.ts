@@ -2,8 +2,8 @@ import I18nKeys from "./src/locales/keys";
 import type { Configuration } from "./src/types/config";
 
 const YukinaConfig: Configuration = {
-  title: "Yukina",
-  subTitle: "Yukina Template Demo Site",
+  title: "K P",
+  subTitle: "My Personal Blog",
   brandTitle: "Yukina",
 
   description: "Demo Site",
@@ -31,9 +31,9 @@ const YukinaConfig: Configuration = {
     },
   ],
 
-  username: "WhitePaper 白芷",
-  sign: "Ad Astra Per Aspera.",
-  avatarUrl: "https://s2.loli.net/2025/01/25/FPpTrQSezM8ivbl.webp",
+  username: "Kinley-pal8",
+  sign: "Rest at the End, Not at the Middle",
+  avatarUrl: "https://avatars.githubusercontent.com/u/141105354?v=4",
   socialLinks: [
     {
       icon: "line-md:github-loop",
