@@ -1,0 +1,100 @@
+---
+title: Journal 1
+published: 2024-02-24
+description: Exploring security in the OverTheWire Bandit
+category: SWS Journal
+draft: false
+---
+
+### Topic : Journal entry: Exploring security in the OverTheWire Bandit
+
+Today marks the completion of levels 0 to 9 in the game OverTheWire Bandit, which is an exciting journey into cybersecurity and Unix systems Considering the challenges and discoveries we encountered along the way, I with new knowledge and understanding a deep in system security concepts
+
+Level 0: .
+The initial level introduced me to SSH (Secure Shell) and basic command-line communication. After connecting to the Bandit server, I figured out the syntax and functionality of the SSH command. The password was readily available, and was a short introduction to the mechanics of the game.
+
+Level 1 to 5:
+These levels improved my understanding of file conversion commands like ls, cd, cat, and file. I have encountered situations where I had to navigate directories, read files, and show files in order to make progress. Additionally, I learned about identifying hidden files with a leading dot (.) and how to identify them with the -a flag containing ls.
+
+Level 6 to 9:
+As I got deeper into access, ownership, and symbolic communication, the challenges grew. I considered the importance of the file path represented by the r, w, and x flags for reading, writing, and killing, respectively. By using commands like chmod, chown, and find, I gained the ability to change permissions and ownership of files and directories.
+
+The walk through from level 10 to 20:
+
+Level 10:
+
+The password is stored in the file data.txt next to the word millionth.
+Solution:
+ls to list the files in the current directory.
+cat data.txt to display the contents of data.txt.
+The password is found by searching for the word millionth in the file.
+
+Level 11:
+
+The password is stored in the file data.txt in one of the few human-readable strings, encoded in Base64.
+Solution:
+'ls' to list the files in the current directory.
+'cat' data.txt to display the contents of data.txt.
+'grep' to filter out the Base64 encoded strings.
+'base64 -d' to decode the Base64 encoded strings.
+
+
+Level 12:
+The password is stored in the file data.txt in one of the few human-readable strings, encoded in ASCII Hex.
+Solution:
+'ls' to list the files in the current directory.
+'cat' data.txt to display the contents of data.txt.
+'grep' to filter out the ASCII Hex encoded strings.
+'xxd -r -p' to decode the ASCII Hex encoded strings.
+
+Level 13:
+
+The password is stored in the file data.txt in one of the few human-readable strings, encoded with the Caesar cipher.
+Solution:
+'ls', 'cat' and 'grep' are used in all level for the first three steps.
+Use tr to decode the Caesar cipher. For example, tr 'A-Za-z' 'B-Za-yb-za-y' to shift the alphabet by 1.
+
+Level 14: 
+
+The password is stored in the file data.txt in one of the few human-readable strings, encoded with the Caesar cipher.
+Solution:
+Use tr to decode the Caesar cipher. For example, tr 'A-Za-z' 'B-Za-yb-za-y' to shift the alphabet by 1.
+
+Level 15: 
+
+The password is stored in the file data.txt in one of the few human-readable strings, encoded with the SDA.
+Solution:
+Use sed or awk to decode the SDA.
+
+
+Level 16:
+
+The password is stored in the file data.txt in one of the few human-readable strings, encoded with AES.
+Solution:
+Use openssl to decode the AES encoded strings.
+
+Level 17: 
+
+The password is stored in the file data.txt in one of the few human-readable strings, encoded with a combination of different ciphers.
+Solution:
+Use tr, sed, awk, base64, xxd, and openssl to decode the strings step by step.
+
+Level 18: 
+
+The password is stored in the file data.txt in one of the few human-readable strings, encoded in a different base.
+Solution:
+Use base64, xxd, or tr to decode the strings based on the base mentioned.
+
+Level 19:
+
+The password is stored in the file data.txt in one of the few human-readable strings, encoded with a combination of different ciphers.
+Solution:
+Use tr, sed, awk, base64, xxd, and openssl to decode the strings step by step.
+
+Level 20: 
+
+The password is stored as same as in level 19.
+Solution:
+Use tr, sed, awk, base64, xxd, and openssl to decode the strings step by step.
+
+This journey through the Bandit game series has been incredibly educational, offering practical insights into Linux and cybersecurity. I look forward to applying these lessons in real-world scenarios and further exploring the depths of the game.
