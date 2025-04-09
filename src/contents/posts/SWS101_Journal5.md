@@ -1,5 +1,5 @@
 ---
-title: Journal 5
+title: x86-64 Assembly
 published: 2024-05-12
 description: Learning x86-64 Assembly 
 category: SWS Journal

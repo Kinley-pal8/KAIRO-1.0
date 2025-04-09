@@ -1,7 +1,7 @@
 ---
-title: Journal 2
+title:HTB Tier 0 and 1.
 published: 2024-03-17
-description: Walk Through Of HTB Tier 0 and 1.
+description: Walk Through 
 category: SWS Journal
 draft: false
 ---

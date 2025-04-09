@@ -1,7 +1,7 @@
 ---
-title: Journal 3
+title: The OWASP Top 10 vulnerabilities
 published: 2024-03-26
-description: The OWASP Top 10 vulnerabilities and the most critical web security risks.
+description: With the most critical web security risks.
 category: SWS Journal
 draft: false
 ---

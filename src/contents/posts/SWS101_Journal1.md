@@ -1,5 +1,5 @@
 ---
-title: Journal 1
+title: OverTheWire Bandit
 published: 2024-02-24
 description: Exploring security in the OverTheWire Bandit
 category: SWS Journal

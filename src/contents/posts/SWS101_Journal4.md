@@ -1,7 +1,7 @@
 ---
-title: Journal 4
+title: Traffic Analysis Essentials & Snort
 published: 2024-04-09
-description: Traffic Analysis Essentials & Snort
+description: Walkthrough
 category: SWS Journal
 draft: false
 ---
