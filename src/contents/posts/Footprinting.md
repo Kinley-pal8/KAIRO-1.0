@@ -8,10 +8,9 @@ author: Me
 draft: false
 ---
 
-
 # 2 - Footprinting
 
-### 1. Enumeration Principles.pdf
+### 1. Enumeration Principles
 
 **Overview**: This document establishes enumeration as a foundational cybersecurity process, distinct yet complementary to OSINT (Open-Source Intelligence). Enumeration involves gathering information about a target using both active methods (e.g., network scans) and passive methods (e.g., leveraging third-party data), forming a continuous loop where each discovery fuels further investigation.
 
@@ -41,7 +40,7 @@ draft: false
 
 ---
 
-### 2. Enumeration Methodology.pdf
+### 2. Enumeration Methodology
 
 **Overview**: This document introduces a structured yet flexible six-layer methodology for enumeration, applicable to external and internal penetration tests. It addresses the unpredictability of target systems by providing a standardized framework that adapts to diverse environments.
 
@@ -68,7 +67,7 @@ draft: false
 
 ---
 
-### 3. Domain Information.pdf
+### 3. Domain Information
 
 **Overview**: This document details passive enumeration of domain-related data to map a company’s online presence, emphasizing stealth to avoid detection.
 
@@ -95,7 +94,7 @@ draft: false
 
 ---
 
-### 4. Cloud Resources.pdf
+### 4. Cloud Resources
 
 **Overview**: This document focuses on enumerating cloud resources (AWS, Azure, GCP), highlighting vulnerabilities from misconfigurations despite provider security.
 
@@ -120,7 +119,7 @@ draft: false
 
 ---
 
-### 5. Staff.pdf
+### 5. Staff
 
 **Overview**: This document explores enumerating staff data from social media and job postings to infer technologies, infrastructure, and security measures indirectly.
 
@@ -684,3 +683,927 @@ draft: false
 - **Risks**: Open relays, spoofing, unencrypted data.
 
 ---
+
+## IMAP (Internet Message Access Protocol)
+
+- **Purpose**: Enables online management of emails directly on a mail server.
+- **Key Features**:
+    - Supports folder structures and hierarchical mailboxes.
+    - Allows synchronization across multiple clients, acting like a network file system for emails.
+    - Emails remain on the server until explicitly deleted.
+    - Text-based protocol using ASCII commands over port 143 (unencrypted) or 993 (SSL/TLS).
+- **Functionality**:
+    - Clients can create local copies and synchronize changes.
+    - Supports offline mode in some clients, syncing changes upon reconnection.
+    - Multiple users can access the server simultaneously.
+- **Security**:
+    - Unencrypted by default, transmitting data in plain text.
+    - SSL/TLS encryption recommended, using ports 143 or 993.
+- **Commands**:
+    - `LOGIN username password`: Authenticate user.
+    - `LIST "" *`: List all directories.
+    - `CREATE "INBOX"`: Create a mailbox.
+    - `DELETE "INBOX"`: Delete a mailbox.
+    - `RENAME "ToRead" "Important"`: Rename a mailbox.
+    - `LSUB "" *`: List subscribed mailboxes.
+    - `SELECT INBOX`: Select a mailbox for access.
+    - `UNSELECT INBOX`: Exit selected mailbox.
+    - `FETCH <ID> all`: Retrieve message data.
+    - `CLOSE`: Remove messages marked as deleted.
+    - `LOGOUT`: Close connection.
+- **Integration**:
+    - SMTP used for sending emails, with sent emails stored in IMAP folders for universal access.
+- **Footprinting**:
+    - Default ports: 143 (IMAP), 993 (IMAPS).
+    - Nmap scan example: `sudo nmap 10.129.14.128 -sV -p143,993 -sC`.
+    - Curl for IMAP interaction: `curl -k 'imaps://10.129.14.128' --user user:p4ssw0rd`.
+    - OpenSSL for encrypted interaction: `openssl s_client -connect 10.129.14.128:imaps`.
+
+## POP3 (Post Office Protocol 3)
+
+- **Purpose**: Retrieves emails from a mail server, typically deleting them after download.
+- **Key Features**:
+    - Limited functionality compared to IMAP: lists, retrieves, and deletes emails.
+    - Does not support folder structures or server-side management.
+- **Security**:
+    - Default ports: 110 (unencrypted), 995 (SSL/TLS).
+    - Unencrypted by default; SSL/TLS recommended.
+- **Commands**:
+    - `USER username`: Specify username.
+    - `PASS password`: Authenticate with password.
+    - `STAT`: Display mailbox status.
+    - `LIST`: List messages.
+    - `RETR <message>`: Retrieve a message.
+    - `DELE <message>`: Delete a message.
+    - `QUIT`: Close connection.
+- **Footprinting**:
+    - Nmap scan example: `sudo nmap 10.129.14.128 -sV -p110,995 -sC`.
+    - OpenSSL for encrypted interaction: `openssl s_client -connect 10.129.14.128:pop3s`.
+
+## SNMP (Simple Network Management Protocol)
+
+- **Purpose**: Monitors and manages network devices (routers, switches, servers, IoT devices).
+- **Key Features**:
+    - Operates over UDP ports 161 (queries) and 162 (traps).
+    - Supports configuration tasks and remote setting changes.
+    - Uses traps for unsolicited event notifications from devices.
+- **Versions**:
+    - **SNMPv1**: Basic, no encryption, plain text community strings.
+    - **SNMPv2c**: Community-based, no encryption, extended functionality.
+    - **SNMPv3**: Enhanced security with authentication and encryption.
+- **MIB (Management Information Base)**:
+    - Standardized text file listing queryable SNMP objects in a tree hierarchy.
+    - Written in ASN.1 ASCII format, contains OIDs (Object Identifiers).
+- **OID (Object Identifier)**:
+    - Unique numerical address for SNMP objects in a hierarchical namespace.
+    - Example: `.1.3.6.1.2.1.1.5.0` for system name.
+- **Community Strings**:
+    - Act as passwords for access control.
+    - Transmitted in plain text in SNMPv1/v2c, vulnerable to interception.
+- **Default Configuration**:
+    - Example: `/etc/snmp/snmpd.conf` with settings like `rocommunity public default`.
+    - Dangerous settings:
+        - `rwuser noauth`: Full OID access without authentication.
+        - `rocommunity <string> <IPv4>`: Full OID access from specific IP.
+- **Footprinting**:
+    - Tools:
+        - `snmpwalk`: Query OIDs (`snmpwalk -v2c -c public 10.129.14.128`).
+        - `onesixtyone`: Brute-force community strings (`onesixtyone -c /path/to/snmp.txt 10.129.14.128`).
+        - `braa`: Enumerate OIDs with known community string (`braa public@10.129.14.128:.1.3.6.*`).
+    - Example output reveals system details like OS, installed packages, and location.
+
+## Recommendations
+
+- **IMAP/POP3**:
+    - Always use SSL/TLS to encrypt connections.
+    - Experiment with Dovecot on a VM to understand configurations.
+- **SNMP**:
+    - Transition to SNMPv3 for enhanced security.
+    - Avoid default or weak community strings.
+    - Set up a VM to test SNMP configurations and explore MIBs/OIDs.
+
+---
+
+## MySQL
+
+### Overview
+
+- **Definition**: Open-source SQL relational database management system (RDBMS) developed by Oracle.
+- **Structure**: Organized collection of data stored in tables with columns, rows, and specific data types.
+- **Operation**: Uses SQL for data manipulation; operates on a client-server model.
+- **File Extension**: Databases often stored in `.sql` files (e.g., `my_wargress.sql`).
+- **MariaDB**: A fork of MySQL created by its original developer post-Oracle acquisition.
+
+### MySQL Clients
+
+- **Function**: Clients interact with the database using SQL queries for inserting, deleting, modifying, and retrieving data.
+- **Access**: Possible via internal networks or the public internet.
+- **Example Use Case**: WordPress CMS stores posts, usernames, and passwords in a MySQL database, typically accessible only from localhost.
+
+### MySQL Databases
+
+- **Applications**: Ideal for dynamic websites requiring efficient syntax and high response speed.
+- **LAMP/LEMP Stack**:
+    - **LAMP**: Linux, Apache, MySQL, PHP.
+    - **LEMP**: Linux, Nginx, MySQL, PHP.
+- **Storage**: Stores content like headers, texts, user information, permissions, and encrypted passwords (using PHP one-way encryption).
+- **Security**: Passwords can be stored in plain text but are typically encrypted.
+
+### MySQL Commands
+
+- **Purpose**: SQL commands manage data and database structure (e.g., display, modify, add, delete rows; manage relationships, indexes, users).
+- **Error Handling**: Errors from SQL injections may reveal sensitive information about database interactions.
+
+### Default Configuration
+
+- **Installation**:
+    
+    ```bash
+    sudo apt install mysql-server -y
+    
+    ```
+    
+- **Config File**: `/etc/mysql/mysql.conf.d/mysqld.cnf`
+- **Key Settings**:
+    - **Port**: 3306
+    - **Socket**: `/var/run/mysqld/mysqld.sock`
+    - **User**: `mysql`
+    - **Data Directory**: `/var/lib/mysql`
+    - **Security-Relevant Settings**:
+        - `user`: Defines the MySQL service user.
+        - `password`: Sets the MySQL user password (stored in plain text).
+        - `admin_address`: IP for administrative connections.
+        - `debug`: Debugging settings.
+    - **Risks**: Misconfigured permissions on config files can expose credentials, allowing unauthorized access to sensitive data.
+
+### Dangerous Settings
+
+- **Plain Text Credentials**: User, password, and admin_address in config files.
+- **Verbose Errors**: Settings like `delay` and `set_warnings` may expose sensitive error details exploitable via SQL injections.
+- **External Access**: MySQL servers on TCP port 3306 exposed externally (often temporary or due to misconfiguration).
+
+### Footprinting MySQL
+
+- **Nmap Scan**:
+    
+    ```bash
+    sudo nmap 10.129.14.128 -sV -sC -p3306 --script mysql*
+    
+    ```
+    
+    - **Output**: Reveals version, credentials (e.g., `root:<empty>`), and valid usernames.
+    - **Caution**: Results (e.g., empty passwords) may be false positives; verify manually.
+- **Manual Verification**:
+    
+    ```bash
+    mysql -u root -h 10.129.14.132  # Fails if no password
+    mysql -u root -pP4SSw0rd -h 10.129.14.128  # Succeeds with correct password
+    
+    ```
+    
+    - **Commands**:
+        
+        ```sql
+        show databases;
+        select version();
+        
+        ```
+        
+
+### Key Commands
+
+| Command | Description |
+| --- | --- |
+| `mysql -u <user> -p<password> -h <ip>` | Connect to MySQL server (no space between `-p` and password). |
+| `show databases;` | List all databases. |
+| `use <database>;` | Select a database. |
+| `show tables;` | List tables in the selected database. |
+| `select version();` | Display MySQL version. |
+
+### System Schemas
+
+- **Information Schema**: Contains metadata about databases, per ANSI/ISO standards.
+- **System Schema**: Microsoft-specific catalog with extensive system information.
+
+## MSSQL
+
+### Overview
+
+- **Definition**: Microsoft’s closed-source SQL-based RDBMS.
+- **Platform**: Primarily for Windows, with versions for Linux and macOS.
+- **Integration**: Strong support for .NET framework, popular for Windows-based applications.
+
+### MSSQL Clients
+
+- **SQL Server Management Studio (SSMS)**:
+    - Client-side tool for database configuration and management.
+    - Can be installed on the server or remote systems.
+    - Risk: Systems with SSMS may store saved credentials, exploitable if compromised.
+
+### MSSQL Databases
+
+- **Default System Databases**:
+    
+    
+    | Database | Description |
+    | --- | --- |
+    | `master` | Stores system information for the SQL Server instance. |
+    | `model` | Template for new databases; changes apply to new databases. |
+    | `msdb` | Used by SQL Server Agent for job scheduling and alerts. |
+    | `tempdb` | Temporary storage for query processing. |
+
+### Dangerous Settings
+
+- **Unencrypted Connections**: Clients not using encryption to connect to the server.
+- **Self-Signed Certificates**: Can be spoofed if used for encryption.
+- **Named Pipes**: Vulnerable to exploitation.
+- **Weak/Default Credentials**: Default `sa` account may be left enabled with weak passwords.
+- **Windows Authentication**: Uses OS credentials (SAM or Active Directory), risking privilege escalation if compromised.
+
+### Footprinting MSSQL
+
+- **Nmap Scan**:
+    
+    ```bash
+    sudo nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config -p1433 10.129.201.248
+    
+    ```
+    
+    - **Output**: Reveals instance name, version (e.g., Microsoft SQL Server 2019), named pipes, and port (1433).
+- **Metasploit MSSQL Ping**:
+    
+    ```bash
+    msf6 auxiliary(scanner/mssql/mssql_ping) > set rhosts 10.129.201.248
+    msf6 auxiliary(scanner/mssql/mssql_ping) > run
+    
+    ```
+    
+    - **Output**: Confirms server name, instance, version, and port.
+
+### Connecting to MSSQL
+
+- **Tool**: `mssqlclient.py` from Impacket.
+- **Command**:
+    
+    ```bash
+    python3 mssqlclient.py Administrator@10.129.201.248 -windows-auth
+    
+    ```
+    
+    - **Output**: Lists databases (e.g., `master`, `tempdb`, `model`, `msdb`, `Transactions`).
+- **T-SQL Interaction**: Use Transact-SQL for querying databases.
+
+### Notes
+
+- **Authentication**: Windows Authentication uses OS credentials, which can be audited but risks escalation if accounts are compromised.
+- **Best Practice**: Set up MSSQL in a VM to explore default configurations and potential misconfigurations.
+
+## General Security Considerations
+
+- **SQL Injections**: Can exploit verbose error messages or misconfigured settings to execute system commands.
+- **Credential Management**: Avoid plain-text storage; use encryption and strong passwords.
+- **Network Exposure**: Limit external access to database ports (3306 for MySQL, 1433 for MSSQL).
+- **Configuration Files**: Secure permissions to prevent unauthorized access to sensitive settings.
+- **Footprinting**: Use tools like Nmap and Metasploit to identify vulnerabilities, but verify results to avoid false positives.
+
+---
+
+## Intelligent Platform Management Interface (IPMI)
+
+### Overview
+
+- **Definition**: Standardized specifications for hardware-based system management, operating independently of the host’s BIOS, CPU, firmware, and OS.
+- **Functionality**: Enables remote management and monitoring (e.g., system temperature, voltage, fan status, power supplies) even when the system is powered off or unresponsive.
+- **Use Cases**:
+    - Modify BIOS settings before OS boot.
+    - Manage systems when powered down.
+    - Access hosts post-system failure.
+- **Operation**: Uses a direct network connection to hardware, not requiring OS login.
+- **Components**:
+    - **Baseboard Management Controller (BMC)**: Core microcontroller.
+    - **Intelligent Chassis Management Bus (ICMB)**: Inter-chassis communication interface.
+    - **Intelligent Platform Management Bus (IPMB)**: Extends BMC functionality.
+    - **IPMI Memory**: Stores system event logs and repository data.
+    - **Communication Interfaces**: Local, serial, LAN, ICMB, and PCI Management Bus.
+- **Vendors**: Supported by over 200 vendors (e.g., Cisco, Dell, HP, Supermicro, Intel).
+- **IPMI v2.0**: Supports serial over LAN for viewing console output.
+
+### Footprinting
+
+- **Port**: Communicates over UDP/623.
+- **BMC Implementation**: Embedded ARM systems running Linux, connected to the motherboard or added via PCI card.
+- **Common BMCs**: HP iLO, Dell DRAC, Supermicro IPMI.
+- **Risk**: BMC access grants near-physical control (monitor, reboot, power off, reinstall OS).
+- **Nmap Scan**:
+    
+    ```bash
+    sudo nmap -sU --script ipmi-version -p 623 ilo.inlanefreight.local
+    
+    ```
+    
+    - **Output**: Identifies IPMI v2.0, user authentication methods, and MAC address.
+- **Metasploit**:
+    
+    ```bash
+    msf6 > use auxiliary/scanner/ipmi/ipmi_version
+    msf6 auxiliary(scanner/ipmi/ipmi_version) > set rhosts 10.129.42.195
+    msf6 auxiliary(scanner/ipmi/ipmi_version) > run
+    
+    ```
+    
+    - **Output**: Confirms version and settings.
+
+### Security Risks
+
+- **Hash Dumping**:
+    - Metasploit module: `auxiliary/scanner/ipmi/ipmi_dumphashes`.
+    - Command:
+        
+        ```bash
+        msf6 > use auxiliary/scanner/ipmi/ipmi_dumphashes
+        msf6 auxiliary(scanner/ipmi/ipmi_dumphashes) > set rhosts 10.129.42.195
+        msf6 auxiliary(scanner/ipmi/ipmi_dumphashes) > run
+        
+        ```
+        
+    - Hashes can be cracked offline using Hashcat (mode 7300).
+    - HP iLO default password attack:
+        
+        ```bash
+        hashcat -m 7300 <hash> -a 3 ?u?u?u?u?u?u?u?u
+        
+        ```
+        
+- **Vulnerabilities**:
+    - Weak/default passwords (e.g., factory defaults).
+    - Password reuse across systems (e.g., BMC password reused for SSH or web consoles).
+    - No direct fix for hash exposure (IPMI specification flaw).
+- **Mitigation**:
+    - Use long, complex passwords.
+    - Implement network segmentation to restrict BMC access.
+
+## Oracle Transparent Network Substrate (TNS)
+
+### Overview
+
+- **Definition**: Communication protocol for Oracle databases and applications, part of Oracle Net Services.
+- **Supported Protocols**: TCP/IP, IPX/SPX, with SSL/TLS encryption.
+- **Industries**: Healthcare, finance, retail.
+- **Features**:
+    - Name resolution, connection management, load balancing, security.
+    - Encrypts client-server communication over TCP/IP.
+    - Provides performance monitoring, error logging, workload management, and fault tolerance.
+
+### Default Configuration
+
+- **Listener Port**: TCP/1521 (configurable).
+- **Supported Protocols**: TCP/IP, UDP, IPX/SPX, AppleTalk.
+- **Configuration Files**:
+    - **tnsnames.ora**: Client-side, resolves service names to network addresses.
+        
+        ```
+        ORCL =
+          (DESCRIPTION =
+            (ADDRESS_LIST =
+              (ADDRESS = (PROTOCOL = TCP)(HOST = 10.129.11.102)(PORT = 1521))
+            )
+            (CONNECT_DATA =
+              (SERVER = DEDICATED)
+              (SERVICE_NAME = orcl)
+            )
+          )
+        
+        ```
+        
+    - **listener.ora**: Server-side, defines listener process properties.
+        
+        ```
+        SID_LIST_LISTENER =
+          (SID_LIST =
+            (SID_DESC =
+              (SID_NAME = PDB1)
+              (ORACLE_HOME = C:\oracle\product\19.0.0\dbhome_1)
+              (GLOBAL_DBNAME = PDB1)
+            )
+          )
+        LISTENER =
+          (DESCRIPTION_LIST =
+            (DESCRIPTION =
+              (ADDRESS = (PROTOCOL = TCP)(HOST = orcl.inlanefreight.htb)(PORT = 1521))
+              (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
+            )
+          )
+        
+        ```
+        
+- **Security Features**:
+    - Accepts connections from authorized hosts.
+    - Basic authentication (hostname, IP, username/password).
+    - Encrypts communication via Oracle Net Services.
+- **Default Passwords**:
+    - Oracle 9i: `CHANGE_ON_INSTALL`.
+    - Oracle DbSNMP: `dbmsnp`.
+- **PLS/SQL Exclusion List**: Blacklists packages/types from execution, stored in `$ORACLE_HOME/sqldevelop`.
+
+### Footprinting and Enumeration
+
+- **Setup Tools**:
+    
+    ```bash
+    #!/bin/bash
+    sudo apt-get install libaio1 python3-dev alien -y
+    git clone https://github.com/quentinhardy/odat.git
+    cd odat/
+    git submodule init
+    git submodule update
+    wget https://download.oracle.com/otn_software/linux/instantclient/2112000/instantclient-basic-linux.x64-21.12.0.0.0dbru.zip
+    unzip instantclient-basic-linux.x64-21.12.0.0.0dbru.zip
+    wget https://download.oracle.com/otn_software/linux/instantclient/2112000/instantclient-sqlplus-linux.x64-21.12.0.0.0dbru.zip
+    unzip instantclient-sqlplus-linux.x64-21.12.0.0.0dbru.zip
+    export LD_LIBRARY_PATH=instantclient_21_12:$LD_LIBRARY_PATH
+    export PATH=$LD_LIBRARY_PATH:$PATH
+    pip3 install cx_Oracle
+    sudo apt-get install python3-scapy -y
+    sudo pip3 install colorlog termcolor passlib python-libnmap
+    sudo apt-get install build-essential libgmp-dev -y
+    pip3 install pycryptodome
+    
+    ```
+    
+- **Test ODAT**:
+    
+    ```bash
+    ./odat.py -h
+    
+    ```
+    
+- **SID Brute-Forcing**:
+    
+    ```bash
+    sudo nmap -p 1521 --script oracle-sid-brute 10.129.204.235
+    
+    ```
+    
+- **SQLplus Login**:
+    
+    ```bash
+    sqlplus scott/tiger@10.129.204.235/XE
+    
+    ```
+    
+    - **Error Fix** (if `libclntsh.so` missing):
+        
+        ```bash
+        sudo sh -c "echo /usr/lib/oracle/12.2/client64/lib > /etc/ld.so.conf.d/oracle-instantclient.conf"
+        
+        ```
+        
+- **Enumeration Commands**:
+    
+    ```sql
+    select table_name from all_tables;
+    select * from user_role_privs;
+    
+    ```
+    
+- **Sysdba Login**:
+    
+    ```bash
+    sqlplus scott/tiger@10.129.204.235/XE as sysdba
+    
+    ```
+    
+
+### Exploitation
+
+- **File Upload**:
+    
+    ```bash
+    ./odat.py utlfile -s 10.129.204.235 -d XE -U scott -P tiger --sysdba --putFile C:\\inetpub\\wwwroot testing.txt
+    
+    ```
+    
+    - **Verify**:
+        
+        ```bash
+        curl -X GET http://10.129.204.235/testing.txt
+        
+        ```
+        
+- **Risks**:
+    - Default/weak passwords (e.g., `scott/tiger`).
+    - Misconfigured listener exposing services.
+    - Unpatched vulnerabilities in older Oracle versions.
+
+## Linux Remote Management Protocols
+
+### Secure Shell (SSH)
+
+### Overview
+
+- **Definition**: Encrypted protocol for secure remote connections over TCP/22.
+- **Compatibility**: Native on Linux, macOS; available on Windows with tools.
+- **Versions**:
+    - **SSH-1**: Vulnerable to MITM attacks.
+    - **SSH-2**: Improved encryption, speed, stability, security.
+- **Authentication Methods**:
+    - Password, public-key, host-based, keyboard, challenge-response, GSSAPI.
+- **Public-Key Authentication**:
+    - **Process**: Server sends certificate; client uses private key to solve cryptographic challenge.
+    - **Keys**:
+        - Private key: Stored locally, secured with passphrase.
+        - Public key: Stored on server.
+    - **Benefit**: Single passphrase for multiple server connections per session.
+
+### Default Configuration
+
+- **File**: `/etc/ssh/sshd_config`.
+- **Settings**:
+    
+    ```bash
+    Include /etc/ssh/sshd_config.d/*.conf
+    ChallengeResponseAuthentication no
+    UsePAM yes
+    X11Forwarding yes
+    PrintMotd no
+    AcceptEnv LANG LC_*
+    Subsystem sftp /usr/lib/openssh/sftp-server
+    
+    ```
+    
+- **Note**: Most settings commented out, requiring manual configuration.
+
+### Dangerous Settings
+
+| Setting | Description |
+| --- | --- |
+| `PasswordAuthentication yes` | Enables brute-forcing passwords. |
+| `PermitEmptyPasswords yes` | Allows empty passwords. |
+| `PermitRootLogin yes` | Permits root login. |
+| `Protocol 1` | Uses outdated encryption. |
+| `X11Forwarding yes` | Enables GUI forwarding (past vulnerabilities). |
+| `AllowTcpForwarding yes` | Allows TCP port forwarding. |
+| `DebianBanner yes` | Displays login banner. |
+
+### Footprinting
+
+- **Tool**: `ssh-audit`.
+    
+    ```bash
+    git clone https://github.com/jtesta/ssh-audit.git
+    cd ssh-audit
+    ./ssh-audit.py 10.129.14.132
+    
+    ```
+    
+    - **Output**: Banner, software version (e.g., OpenSSH 8.2p1), encryption algorithms.
+- **Verbose SSH**:
+    
+    ```bash
+    ssh -v cry0l1t3@10.129.14.132
+    
+    ```
+    
+    - **Output**: Shows authentication methods (e.g., publickey, password, keyboard-interactive).
+- **Force Password Authentication**:
+    
+    ```bash
+    ssh -v cry0l1t3@10.129.14.132 -o PreferredAuthentications=password
+    
+    ```
+    
+
+### Rsync
+
+### Overview
+
+- **Definition**: Tool for efficient file copying, locally or remotely, over TCP/873.
+- **Features**:
+    - Delta-transfer algorithm: Sends only file differences.
+    - Used for backups and mirroring.
+    - Can use SSH for secure transfers.
+- **Risk**: Misconfigured shares may allow unauthorized access.
+
+### Footprinting
+
+- **Nmap Scan**:
+    
+    ```bash
+    sudo nmap -sV -p 873 127.0.0.1
+    
+    ```
+    
+    - **Output**: Confirms Rsync protocol version (e.g., 31).
+- **Probe Shares**:
+    
+    ```bash
+    nc -nv 127.0.0.1 873
+    
+    ```
+    
+    - **Output**: Lists shares (e.g., `dev`).
+- **Enumerate Share**:
+    
+    ```bash
+    rsync -av --list-only rsync://127.0.0.1/dev
+    
+    ```
+    
+    - **Output**: Lists files (e.g., `build.sh`, `secrets.yaml`, `.ssh` directory).
+- **Sync Files**:
+    
+    ```bash
+    rsync rsync://127.0.0.1/dev .
+    
+    ```
+    
+    - **With SSH**:
+        
+        ```bash
+        rsync -e ssh rsync://127.0.0.1/dev .
+        
+        ```
+        
+
+### R-Services
+
+### Overview
+
+- **Definition**: Suite of insecure remote access services for Unix, replaced by SSH.
+- **Ports**: TCP/512 (rexec), TCP/513 (rlogin), TCP/514 (rsh).
+- **Commands**:
+    
+    
+    | Command | Daemon | Port | Description |
+    | --- | --- | --- | --- |
+    | `rcp` | `rshd` | 514 | Remote file copy. |
+    | `rsh` | `rshd` | 514 | Remote shell access. |
+    | `rexec` | `rexecd` | 512 | Remote command execution. |
+    | `rlogin` | `rlogind` | 513 | Remote login. |
+    | `rwho` | `rwhod` | 513/UDP | Lists logged-in users. |
+    | `rusers` | `rusersd` | 513/UDP | Detailed user information. |
+- **Security Flaw**: Unencrypted communication, vulnerable to MITM attacks.
+
+### Configuration Files
+
+- **/etc/hosts.equiv**:
+    
+    ```
+    pwnbox cry0l1t3
+    
+    ```
+    
+    - Lists trusted hosts/users for automatic access.
+- **.rhosts**:
+    
+    ```
+    htb-student 10.0.17.5
+    htb-student 10.0.17.10
+    htb-student +
+    
+    ```
+    
+    - Wildcard (`+`) allows any external user to access as `htb-student`.
+
+### Footprinting
+
+- **Nmap Scan**:
+    
+    ```bash
+    sudo nmap -sV -p 512,513,514 10.0.17.2
+    
+    ```
+    
+    - **Output**: Identifies open ports/services (e.g., `exec`, `login`, `tcpwrapped`).
+- **Rlogin**:
+    
+    ```bash
+    rlogin 10.0.17.2 -l htb-student
+    
+    ```
+    
+    - Exploits misconfigured `.rhosts` for unauthenticated access.
+- **Rwho**:
+    
+    ```bash
+    rwho
+    
+    ```
+    
+    - Lists authenticated users (e.g., `htb-student` on `workstn01`).
+- **Rusers**:
+    
+    ```bash
+    rusers -al 10.0.17.5
+    
+    ```
+    
+    - Provides detailed user information (e.g., login time, TTY).
+
+### General Security Considerations
+
+- **IPMI**:
+    - Restrict BMC access via network segmentation.
+    - Avoid default/weak passwords; monitor for password reuse.
+- **Oracle TNS**:
+    - Use strong passwords and SSL/TLS encryption.
+    - Regularly update Oracle software to patch vulnerabilities.
+    - Restrict listener access to authorized hosts.
+- **SSH**:
+    - Disable `PasswordAuthentication` and use public-key authentication.
+    - Disable `PermitRootLogin` and `PermitEmptyPasswords`.
+    - Use SSH-2 and strong encryption algorithms.
+- **Rsync**:
+    - Require authentication for shares.
+    - Use SSH for secure transfers.
+- **R-Services**:
+    - Avoid use due to inherent insecurities.
+    - If necessary, restrict access via `hosts.equiv` and `.rhosts` with specific IPs/users.
+- **General**:
+    - Regularly audit configurations and credentials.
+    - Use network monitoring to detect unauthorized access.
+    - Apply least privilege principles for all services.
+
+---
+
+## Windows Remote Management Protocols Notes
+
+Windows servers can be managed locally or remotely using tools like Server Manager. Remote management, enabled by default since Windows Server 2016, is part of Windows hardware management features, including WS-Management protocol, hardware diagnostics, and baseboard management controllers. A COM API and script objects allow remote communication via WS-Management.
+
+**Main Components**:
+
+- Remote Desktop Protocol (RDP)
+- Windows Remote Management (WinRM)
+- Windows Management Instrumentation (WMI)
+
+## Remote Desktop Protocol (RDP)
+
+### Overview
+
+- **Definition**: Microsoft-developed protocol for remote access to Windows systems, transmitting GUI display and control commands over IP networks.
+- **Layer**: Operates at the application layer of the TCP/IP model.
+- **Ports**: Typically uses TCP/3389; UDP/3389 for connectionless remote administration.
+- **Encryption**: Supports Transport Layer Security (TLS) since Windows Vista, but some systems allow weaker RDP Security.
+- **Certificates**: Uses self-signed certificates by default, which may trigger warnings as clients cannot verify authenticity.
+- **Requirements**:
+    - Network and server firewalls must allow external connections.
+    - For NAT environments, port forwarding and the server’s public IP are needed.
+- **Default Configuration**: Installed on Windows servers, activated via Server Manager, and set to allow connections only with Network Level Authentication (NLA).
+
+### Footprinting
+
+- **Purpose**: Identifies NLA status, product version, and hostname.
+- **Nmap Scan**:
+    
+    ```bash
+    nmap -sV -sC 10.129.201.248 -p3389 --script rdp*
+    
+    ```
+    
+    - **Output**:
+        - Confirms Microsoft Terminal Services on port 3389.
+        - Security layers: CredSSP (NLA), CredSSP with Early User Auth, RDSTLS.
+        - NTLM info: Target Name, NetBIOS/DNS names (ILF-SQL-01), Product Version (10.0.17763), System Time.
+        - OS: Windows; CPE: cpe:/o:microsoft:windows.
+- **Packet Trace**:
+    
+    ```bash
+    nmap -sV -sC 10.129.201.248 -p3389 --packet-trace --disable-arp-ping -n
+    
+    ```
+    
+    - **Output**: Tracks packets, showing probes like TerminalServerCookie. Note: RDP cookies may be detected by EDR systems, potentially blocking scans.
+- **RDP Security Check**:
+    
+    ```bash
+    ./rdp-sec-check.pl 10.129.201.248
+    
+    ```
+    
+    - **Output**:
+        - Protocols: PROTOCOL_HYBRID (CredSSP with NLA) supported; PROTOCOL_RDP and PROTOCOL_SSL not supported (HYBRID_REQUIRED_BY_SERVER).
+        - Encryption: No support for ENCRYPTION_METHOD_NONE, 40BIT, 56BIT, 128BIT, or FIPS.
+
+### Connection
+
+- **Tools** (Linux): xfreerdp, rdesktop, Remmina for GUI interaction.
+- **Command**:
+    
+    ```bash
+    xfreerdp /u:cry0l1t3 /p:"P455w0rD!" /v:10.129.201.248
+    
+    ```
+    
+    - **Output**: Loads channels (rdpsdr, rdpsnd, cliprdr), establishes connection, and creates crypto directories for certificates.
+
+### Security Risks
+
+- Weak encryption if TLS is not enforced.
+- Self-signed certificates enable man-in-the-middle (MITM) attacks.
+- Exposed RDP services vulnerable to brute-force attacks if NLA is disabled.
+
+### Mitigation
+
+- Enforce NLA and TLS for all connections.
+- Use strong, unique credentials.
+- Restrict RDP access via firewall rules or VPN.
+- Monitor for unusual login attempts.
+
+## Windows Remote Management (WinRM)
+
+### Overview
+
+- **Definition**: Protocol for remote management of Windows systems using HTTP/HTTPS.
+- **Ports**: TCP/5985 (HTTP), TCP/5986 (HTTPS); typically HTTP used.
+- **Purpose**: Executes commands and manages configurations remotely.
+
+### Footprinting
+
+- **Nmap Scan**:
+    
+    ```bash
+    nmap -sV -sC 10.129.201.248 -p5985,5986 --disable-arp-ping -n
+    
+    ```
+    
+    - **Output**:
+        - Port 5985 open, running Microsoft HTTPAPI/2.0 (SSDP/UPnP).
+        - HTTP title: "Not found"; server header: Microsoft-HTTPAPI/2.0.
+        - OS: Windows; CPE: cpe:/o:microsoft:windows.
+- **PowerShell**:
+    
+    ```powershell
+    Test-WSMan -ComputerName 10.129.201.248
+    
+    ```
+    
+    - Verifies WinRM accessibility.
+- **Evil-WinRM** (Linux):
+    
+    ```bash
+    evil-winrm -i 10.129.201.248 -u cry0l1t3 -p P455w0rD!
+    
+    ```
+    
+    - **Output**: Establishes a PowerShell session, landing in the user’s Documents directory.
+
+### Security Risks
+
+- Unencrypted HTTP (5985) exposes credentials and commands.
+- Weak or reused credentials vulnerable to brute-forcing.
+- Misconfigured WinRM may allow unauthorized access.
+
+### Mitigation
+
+- Use HTTPS (5986) with strong certificates.
+- Restrict WinRM access to specific IPs or via VPN.
+- Implement strong authentication and monitor logs.
+
+## Windows Management Instrumentation (WMI)
+
+### Overview
+
+- **Definition**: Microsoft’s implementation of the Common Information Model (CIM), part of Web-Based Enterprise Management (WBEM).
+- **Functionality**: Provides read/write access to most Windows settings, critical for administration and remote maintenance.
+- **Access**: Via PowerShell, VBScript, or Windows Management Instrumentation Console (WMIC).
+- **Components**: Multiple programs and databases (repositories).
+
+### Footprinting
+
+- **Port**: Initializes on TCP/135, then switches to a random port.
+- **Tool**: wm.exec.py (Impacket):
+    
+    ```bash
+    /usr/share/doc/python3-impacket/examples/wm.exec.py cry0l1t3:"P455w0rD!"@10.129.201.248
+    
+    ```
+    
+    - **Output**: Uses SMBv3.0, connects to ILF-SQL-01, confirming WMI access.
+
+### Security Risks
+
+- Exposed WMI services allow extensive system control if credentials are compromised.
+- Random port usage complicates firewall rules.
+- Weak credentials increase risk of unauthorized access.
+
+### Mitigation
+
+- Restrict WMI access to authorized IPs.
+- Use strong credentials and enable auditing.
+- Limit WMI permissions to least privilege.
+
+## General Security Considerations
+
+- **Experimentation**: Set up a Windows Server VM to test configurations and scan results for hands-on experience.
+- **Common Mitigations**:
+    - Enforce strong encryption (TLS, HTTPS) for all protocols.
+    - Use complex, unique credentials and avoid reuse.
+    - Implement network segmentation and firewall rules to limit access.
+    - Regularly audit configurations and monitor for suspicious activity.
+- **Tool Usage**:
+    - Nmap for service enumeration and vulnerability scanning.
+    - Evil-WinRM and Impacket for exploitation and testing.
+    - PowerShell for native Windows management and verification.
+- **Risks**:
+    - Exposed services (RDP, WinRM, WMI) are prime targets for attackers.
+    - Default or weak configurations increase vulnerability to brute-force and MITM attacks.
