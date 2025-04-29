@@ -5,7 +5,6 @@ description: Walk Through
 category: SWS Journal
 draft: false
 ---
-this is my present
 
 ### Topic : Journal entry 2: Walk Through Of HTB Tier 0 and 1.
 
